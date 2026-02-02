@@ -32,7 +32,7 @@ const dataTypes = [
 ];
 
 const commonUnits = [
-  { value: "", label: "No unit" },
+  { value: "none", label: "No unit" },
   { value: "gy", label: "Gy (Gray)" },
   { value: "cgy", label: "cGy (centiGray)" },
   { value: "mm", label: "mm (millimeters)" },
