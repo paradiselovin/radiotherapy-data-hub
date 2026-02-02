@@ -14,6 +14,9 @@ interface DetectorData {
   detectorType: string;
   model: string;
   manufacturer: string;
+  position?: string;
+  depth?: string;
+  orientation?: string;
 }
 
 interface DetectorStepProps {
@@ -35,7 +38,7 @@ const detectorTypes = [
 
 export function DetectorStep({ data, onChange }: DetectorStepProps) {
   const addDetector = () => {
-    onChange([...data, { detectorType: "", model: "", manufacturer: "" }]);
+    onChange([...data, { detectorType: "", model: "", manufacturer: "", position: "", depth: "", orientation: "" }]);
   };
 
   const removeDetector = (index: number) => {
@@ -129,6 +132,47 @@ export function DetectorStep({ data, onChange }: DetectorStepProps) {
                     updateDetector(index, "model", e.target.value)
                   }
                 />
+              </div>
+            </div>
+
+            {/* Additional parameters for this experiment */}
+            <div className="border-t pt-4">
+              <p className="text-sm font-medium text-muted-foreground mb-3">
+                Position in this experiment
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Position</Label>
+                  <Input
+                    placeholder="e.g., Along beam axis, Off-axis"
+                    value={detector.position || ""}
+                    onChange={(e) =>
+                      updateDetector(index, "position", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Depth (cm)</Label>
+                  <Input
+                    placeholder="e.g., 5, 10, dmax"
+                    value={detector.depth || ""}
+                    onChange={(e) =>
+                      updateDetector(index, "depth", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Orientation</Label>
+                  <Input
+                    placeholder="e.g., Horizontal, Vertical"
+                    value={detector.orientation || ""}
+                    onChange={(e) =>
+                      updateDetector(index, "orientation", e.target.value)
+                    }
+                  />
+                </div>
               </div>
             </div>
           </div>

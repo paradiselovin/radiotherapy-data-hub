@@ -11,6 +11,7 @@ from app.models import (
     detector,
     machine,
     phantom,
+    column_mapping,
     )
 from app.routes import (
     articles,
@@ -22,7 +23,8 @@ from app.routes import (
     machines,
     experience_machines,
     phantoms,
-    experience_phantoms
+    experience_phantoms,
+    complete_submission,
 )
 
 
@@ -31,9 +33,12 @@ app = FastAPI(title="Dosimetry Database API")
 # Creating a CORS middleware with restricted origins
 # In production, replace with your actual domain(s)
 ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Vite dev server
+    "http://localhost:8080",  # Frontend dev server (Vite)
+    "http://localhost:5173",  # Alternative Vite dev server
     "http://localhost:3000",  # Alternative dev port
     "http://localhost:8000",  # Backend (for testing)
+    "http://127.0.0.1:8080",  # Frontend via loopback
+    "http://127.0.0.1:5173",  # Vite via loopback
     # Add production domains here when deploying:
     # "https://yourdomain.com",
     # "https://www.yourdomain.com",
@@ -73,6 +78,9 @@ app.include_router(detectors.router)
 app.include_router(experience_machines.router)
 app.include_router(experience_phantoms.router)
 app.include_router(experience_detectors.router)
+app.include_router(complete_submission.router)
 
 # Mount frontend static after API routers so API endpoints are not shadowed
-app.mount("/", StaticFiles(directory="../frontend/dist", html=True), name="static")
+# NOTE: In development, the frontend runs on a separate dev server (npm run dev)
+# Uncomment the line below only when you have built the frontend (npm run build)
+# app.mount("/", StaticFiles(directory="../frontend/dist", html=True), name="static")

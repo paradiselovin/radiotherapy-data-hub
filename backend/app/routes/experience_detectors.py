@@ -38,7 +38,7 @@ def add_detector_to_experience(
     # Vérifier que la liaison n'existe pas déjà
     existing = db.query(ExperienceDetector).filter(
         ExperienceDetector.experience_id == experience_id,
-        ExperienceDetector.detecteur_id == payload.detector_id
+        ExperienceDetector.detector_id == payload.detector_id
     ).first()
     if existing:
         raise HTTPException(status_code=409, detail="Detector already linked to this experience")

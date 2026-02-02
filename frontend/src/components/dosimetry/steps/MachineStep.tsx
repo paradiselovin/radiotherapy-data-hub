@@ -14,6 +14,9 @@ interface MachineData {
   manufacturer: string;
   model: string;
   machineType: string;
+  energy?: string;
+  collimation?: string;
+  settings?: string;
 }
 
 interface MachineStepProps {
@@ -33,7 +36,7 @@ const machineTypes = [
 
 export function MachineStep({ data, onChange }: MachineStepProps) {
   const addMachine = () => {
-    onChange([...data, { manufacturer: "", model: "", machineType: "" }]);
+    onChange([...data, { manufacturer: "", model: "", machineType: "", energy: "", collimation: "", settings: "" }]);
   };
 
   const removeMachine = (index: number) => {
@@ -127,6 +130,45 @@ export function MachineStep({ data, onChange }: MachineStepProps) {
                   value={machine.model}
                   onChange={(e) => updateMachine(index, "model", e.target.value)}
                 />
+              </div>
+            </div>
+
+            {/* Additional parameters for this experiment */}
+            <div className="border-t pt-4">
+              <p className="text-sm font-medium text-muted-foreground mb-3">
+                Parameters for this experiment
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Energy (MV)</Label>
+                  <Input
+                    placeholder="e.g., 6, 10, 15 MV"
+                    value={machine.energy || ""}
+                    onChange={(e) => updateMachine(index, "energy", e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Collimation</Label>
+                  <Input
+                    placeholder="e.g., X-jaw, Y-jaw angles"
+                    value={machine.collimation || ""}
+                    onChange={(e) =>
+                      updateMachine(index, "collimation", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Settings</Label>
+                  <Input
+                    placeholder="e.g., Gantry angle, Dose rate"
+                    value={machine.settings || ""}
+                    onChange={(e) =>
+                      updateMachine(index, "settings", e.target.value)
+                    }
+                  />
+                </div>
               </div>
             </div>
           </div>

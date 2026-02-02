@@ -17,3 +17,5 @@ class Donnee(Base):
     
     # Relation vers Experience
     experience = relationship("Experience", back_populates="donnees")
+    # Relation vers ColumnMapping (one-to-many)
+    column_mappings = relationship("ColumnMapping", back_populates="donnee", cascade="all, delete-orphan")

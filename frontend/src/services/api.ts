@@ -107,23 +107,46 @@ export interface ColumnMapping {
 // API Error handling
 class ApiError extends Error {
   status: number;
+  details: any;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, details?: any) {
     super(message);
     this.status = status;
+    this.details = details;
     this.name = "ApiError";
   }
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new ApiError(
-      errorText || `HTTP error ${response.status}`,
-      response.status
-    );
+    let errorMessage = `HTTP ${response.status}`;
+    let errorDetails = null;
+
+    try {
+      const errorData = await response.json();
+      errorDetails = errorData;
+      if (errorData.detail) {
+        errorMessage = errorData.detail;
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    } catch {
+      const errorText = await response.text();
+      if (errorText) {
+        errorMessage = errorText;
+      }
+    }
+
+    console.error("API Error:", { status: response.status, message: errorMessage, details: errorDetails });
+    throw new ApiError(errorMessage, response.status, errorDetails);
   }
-  return response.json();
+
+  try {
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to parse response:", error);
+    throw new ApiError("Invalid response format from server", response.status);
+  }
 }
 
 // API Methods
@@ -264,6 +287,7 @@ export const api = {
       data_type: string;
       unit?: string;
       description?: string;
+      columnMapping?: any[];
     }
   ): Promise<DonneeResponse> {
     const formData = new FormData();
@@ -271,6 +295,9 @@ export const api = {
     formData.append("data_type", data.data_type);
     if (data.unit) formData.append("unit", data.unit);
     if (data.description) formData.append("description", data.description);
+    if (data.columnMapping && data.columnMapping.length > 0) {
+      formData.append("columnMapping", JSON.stringify(data.columnMapping));
+    }
 
     const response = await fetch(
       `${API_BASE_URL}/donnees/upload/${experienceId}`,
@@ -280,6 +307,44 @@ export const api = {
       }
     );
     return handleResponse<DonneeResponse>(response);
+  },
+
+  // Complete submission - atomic transaction
+  async submitCompleteExperiment(formData: {
+    title: string;
+    authors: string;
+    doi?: string;
+    experience_description: string;
+    machines: any[];
+    detectors: any[];
+    phantoms: any[];
+    file: File;
+    data_type: string;
+    unit?: string;
+    data_description?: string;
+    columnMapping?: any[];
+  }): Promise<any> {
+    const data = new FormData();
+    data.append("title", formData.title);
+    data.append("authors", formData.authors);
+    if (formData.doi) data.append("doi", formData.doi);
+    data.append("experience_description", formData.experience_description);
+    data.append("machines", JSON.stringify(formData.machines));
+    data.append("detectors", JSON.stringify(formData.detectors));
+    data.append("phantoms", JSON.stringify(formData.phantoms));
+    data.append("file", formData.file);
+    data.append("data_type", formData.data_type);
+    if (formData.unit) data.append("unit", formData.unit);
+    if (formData.data_description) data.append("data_description", formData.data_description);
+    if (formData.columnMapping && formData.columnMapping.length > 0) {
+      data.append("columnMapping", JSON.stringify(formData.columnMapping));
+    }
+
+    const response = await fetch(`${API_BASE_URL}/complete/submit`, {
+      method: "POST",
+      body: data,
+    });
+    return handleResponse<any>(response);
   },
 
   // Health check

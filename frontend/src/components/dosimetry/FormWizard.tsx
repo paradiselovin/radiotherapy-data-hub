@@ -61,7 +61,7 @@ const steps = [
 
 export function FormWizard() {
   const [currentStep, setCurrentStep] = useState(1);
-  const { isSubmitting, submitForm } = useFormSubmit();
+  const { isSubmitting, submitForm, failedStep } = useFormSubmit();
   const [formData, setFormData] = useState<FormData>({
     article: { title: "", authors: "", doi: "" },
     experience: { description: "" },
@@ -111,6 +111,12 @@ export function FormWizard() {
         data: { dataType: "", unit: "", fileFormat: "", description: "", file: null, columnMapping: [] },
       });
       setCurrentStep(1);
+    } else if (failedStep && failedStep > 0) {
+      // Navigate to the step that failed
+      console.log(`📍 Navigating to failed step: ${failedStep}`);
+      setCurrentStep(failedStep);
+      // Scroll to top so user sees the error
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 

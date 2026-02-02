@@ -6,7 +6,7 @@ class ExperienceDetector(Base):
     __tablename__ = "experience_detecteur"
 
     experience_id = Column(Integer, ForeignKey("experiences.experience_id"), primary_key=True)
-    detecteur_id = Column(Integer, ForeignKey("detecteurs.detecteur_id"), primary_key=True)
+    detector_id = Column(Integer, ForeignKey("detecteurs.detecteur_id"), primary_key=True)
 
     position = Column(String)
     depth = Column(String)

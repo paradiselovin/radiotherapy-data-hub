@@ -1,4 +1,4 @@
-import { Pencil, FileText, Cpu, Radio, Database, TableProperties } from "lucide-react";
+import { Pencil, FileText, Cpu, Radio, Database, TableProperties, Box } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { FormData } from "../FormWizard";
@@ -141,6 +141,49 @@ export function SummaryStep({ data, onEdit }: SummaryStepProps) {
         </div>
       </div>
 
+      {/* Phantoms Section */}
+      <div className="border rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Box className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold">Phantoms</h3>
+            <Badge variant="secondary">{data.phantoms.length}</Badge>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => onEdit(5)}>
+            <Pencil className="h-4 w-4 mr-1" />
+            Edit
+          </Button>
+        </div>
+        <div className="space-y-2">
+          {data.phantoms.length > 0 ? (
+            data.phantoms.map((phantom, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-2 text-sm bg-muted/50 rounded px-3 py-2"
+              >
+                <span className="font-medium">
+                  {phantom.name || "Unnamed phantom"}
+                </span>
+                {phantom.phantom_type && (
+                  <Badge variant="outline">
+                    {phantom.phantom_type.replace("_", " ")}
+                  </Badge>
+                )}
+                {phantom.dimensions && (
+                  <span className="text-muted-foreground text-xs">
+                    {phantom.dimensions}
+                  </span>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No phantoms added
+            </p>
+          )}
+        </div>
+      </div>
+
       {/* Data Section */}
       <div className="border rounded-lg p-4">
         <div className="flex items-center justify-between mb-3">
@@ -148,7 +191,7 @@ export function SummaryStep({ data, onEdit }: SummaryStepProps) {
             <FileText className="h-5 w-5 text-primary" />
             <h3 className="font-semibold">Dataset</h3>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => onEdit(5)}>
+          <Button variant="ghost" size="sm" onClick={() => onEdit(6)}>
             <Pencil className="h-4 w-4 mr-1" />
             Edit
           </Button>
@@ -188,7 +231,7 @@ export function SummaryStep({ data, onEdit }: SummaryStepProps) {
             <h3 className="font-semibold">Column Mapping</h3>
             <Badge variant="secondary">{data.data.columnMapping.length}</Badge>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => onEdit(6)}>
+          <Button variant="ghost" size="sm" onClick={() => onEdit(7)}>
             <Pencil className="h-4 w-4 mr-1" />
             Edit
           </Button>
