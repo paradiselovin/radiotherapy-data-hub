@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { ColumnMapping } from "./ColumnMappingStep";
 
 interface DataInfo {
   dataType: string;
@@ -17,6 +18,7 @@ interface DataInfo {
   fileFormat: string;
   description: string;
   file: File | null;
+  columnMapping: ColumnMapping[];
 }
 
 interface DataStepProps {

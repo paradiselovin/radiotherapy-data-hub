@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -8,7 +8,9 @@ import { ExperienceStep } from "./steps/ExperienceStep";
 import { MachineStep } from "./steps/MachineStep";
 import { DetectorStep } from "./steps/DetectorStep";
 import { DataStep } from "./steps/DataStep";
+import { ColumnMappingStep, type ColumnMapping } from "./steps/ColumnMappingStep";
 import { SummaryStep } from "./steps/SummaryStep";
+import { useFormSubmit } from "@/hooks/useFormSubmit";
 
 export interface FormData {
   article: {
@@ -35,6 +37,7 @@ export interface FormData {
     fileFormat: string;
     description: string;
     file: File | null;
+    columnMapping: ColumnMapping[];
   };
 }
 
@@ -44,17 +47,19 @@ const steps = [
   { id: 3, name: "Machine", description: "Equipment used" },
   { id: 4, name: "Detector", description: "Detection devices" },
   { id: 5, name: "Data", description: "Upload dataset" },
-  { id: 6, name: "Summary", description: "Review & submit" },
+  { id: 6, name: "Columns", description: "Map columns" },
+  { id: 7, name: "Summary", description: "Review & submit" },
 ];
 
 export function FormWizard() {
   const [currentStep, setCurrentStep] = useState(1);
+  const { isSubmitting, submitForm } = useFormSubmit();
   const [formData, setFormData] = useState<FormData>({
     article: { title: "", authors: "", doi: "" },
     experience: { description: "" },
     machines: [{ manufacturer: "", model: "", machineType: "" }],
     detectors: [{ detectorType: "", model: "", manufacturer: "" }],
-    data: { dataType: "", unit: "", fileFormat: "", description: "", file: null },
+    data: { dataType: "", unit: "", fileFormat: "", description: "", file: null, columnMapping: [] },
   });
 
   const progress = ((currentStep - 1) / (steps.length - 1)) * 100;
@@ -84,10 +89,19 @@ export function FormWizard() {
     }
   };
 
-  const handleSubmit = () => {
-    console.log("Submitting form data:", formData);
-    // Here you would call your API
-    alert("Form submitted successfully! Check console for data.");
+  const handleSubmit = async () => {
+    const success = await submitForm(formData);
+    if (success) {
+      // Reset form on success
+      setFormData({
+        article: { title: "", authors: "", doi: "" },
+        experience: { description: "" },
+        machines: [{ manufacturer: "", model: "", machineType: "" }],
+        detectors: [{ detectorType: "", model: "", manufacturer: "" }],
+        data: { dataType: "", unit: "", fileFormat: "", description: "", file: null, columnMapping: [] },
+      });
+      setCurrentStep(1);
+    }
   };
 
   const renderStep = () => {
@@ -128,6 +142,16 @@ export function FormWizard() {
           />
         );
       case 6:
+        return (
+          <ColumnMappingStep
+            data={formData.data.columnMapping}
+            fileName={formData.data.file?.name || null}
+            onChange={(columnMapping) =>
+              updateFormData("data", { ...formData.data, columnMapping })
+            }
+          />
+        );
+      case 7:
         return <SummaryStep data={formData} onEdit={goToStep} />;
       default:
         return null;
@@ -244,8 +268,19 @@ export function FormWizard() {
               Continue
             </Button>
           ) : (
-            <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700">
-              Submit Data
+            <Button 
+              onClick={handleSubmit} 
+              className="bg-green-600 hover:bg-green-700"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit Data"
+              )}
             </Button>
           )}
         </div>

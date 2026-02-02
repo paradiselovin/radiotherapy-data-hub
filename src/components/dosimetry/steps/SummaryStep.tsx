@@ -1,4 +1,4 @@
-import { Pencil, FileText, Cpu, Radio, Database } from "lucide-react";
+import { Pencil, FileText, Cpu, Radio, Database, TableProperties } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { FormData } from "../FormWizard";
@@ -178,6 +178,45 @@ export function SummaryStep({ data, onEdit }: SummaryStepProps) {
             </p>
           )}
         </div>
+      </div>
+
+      {/* Column Mapping Section */}
+      <div className="border rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <TableProperties className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold">Column Mapping</h3>
+            <Badge variant="secondary">{data.data.columnMapping.length}</Badge>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => onEdit(6)}>
+            <Pencil className="h-4 w-4 mr-1" />
+            Edit
+          </Button>
+        </div>
+        {data.data.columnMapping.length > 0 ? (
+          <div className="space-y-2">
+            {data.data.columnMapping.map((col, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-2 text-sm bg-muted/50 rounded px-3 py-2"
+              >
+                <code className="font-mono font-medium">{col.name}</code>
+                {col.unit && (
+                  <Badge variant="outline" className="text-xs">
+                    {col.unit}
+                  </Badge>
+                )}
+                <span className="text-muted-foreground ml-auto text-xs truncate max-w-[200px]">
+                  {col.description}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            No columns mapped yet
+          </p>
+        )}
       </div>
 
       {/* Confirmation */}
