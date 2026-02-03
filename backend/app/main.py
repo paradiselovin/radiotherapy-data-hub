@@ -1,4 +1,5 @@
 # Entry point for the FastAPI
+import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,19 +31,9 @@ from app.routes import (
 
 app = FastAPI(title="Dosimetry Database API")
 
-# Creating a CORS middleware with restricted origins
-# In production, replace with your actual domain(s)
-ALLOWED_ORIGINS = [
-    "http://localhost:8080",  # Frontend dev server (Vite)
-    "http://localhost:5173",  # Alternative Vite dev server
-    "http://localhost:3000",  # Alternative dev port
-    "http://localhost:8000",  # Backend (for testing)
-    "http://127.0.0.1:8080",  # Frontend via loopback
-    "http://127.0.0.1:5173",  # Vite via loopback
-    # Add production domains here when deploying:
-    # "https://yourdomain.com",
-    # "https://www.yourdomain.com",
-]
+# CORS configuration from environment variable
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173,http://localhost:8080")
+ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ORIGINS.split(",")]
 
 app.add_middleware(
     CORSMiddleware,
@@ -52,8 +43,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Creating tables
+# Creating database tables at startup
+print("🔧 Creating database tables...")
 Base.metadata.create_all(bind=engine)
+print("✅ Database tables created successfully!")
 
 # Creating routers
 app.include_router(articles.router)
@@ -63,7 +56,12 @@ app.include_router(donnees.router)
 
 @app.get("/")
 def root():
-    return {"status": "API running"}
+    return {"status": "API running", "message": "Radiotherapy Data Hub API"}
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint for monitoring"""
+    return {"status": "healthy", "service": "radiotherapy-api"}
 
 
 from app.routes import (
