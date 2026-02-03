@@ -92,20 +92,22 @@ def get_or_create_detector(
 
 def get_or_create_phantom(
     db: Session,
-    name: str,
-    phantom_type: str,
+    manufacturer: str = None,
+    model: str = None,
+    phantom_type: str = None,
     dimensions: str = None,
     material: str = None,
 ) -> Phantom:
     """
     Récupère un fantôme existant ou le crée si il n'existe pas.
     
-    Recherche basée sur : name + phantom_type
+    Recherche basée sur : manufacturer + model + phantom_type
     (dimensions et material peuvent varier pour le même fantôme)
     
     Args:
         db: Session de base de données
-        name: Nom du fantôme
+        manufacturer: Fabricant du fantôme
+        model: Modèle du fantôme (requis)
         phantom_type: Type du fantôme
         dimensions: Dimensions du fantôme (optionnel)
         material: Matériau du fantôme (optionnel)
@@ -114,17 +116,25 @@ def get_or_create_phantom(
         Phantom: L'objet Phantom (existant ou nouvellement créé)
     """
     # Chercher si le fantôme existe déjà
-    existing_phantom = db.query(Phantom).filter(
-        Phantom.name == name,
-        Phantom.phantom_type == phantom_type,
-    ).first()
+    # On utilise model comme clé primaire (avec manufacturer et phantom_type)
+    query = db.query(Phantom)
+    
+    if model:
+        query = query.filter(Phantom.model == model)
+    if manufacturer:
+        query = query.filter(Phantom.manufacturer == manufacturer)
+    if phantom_type:
+        query = query.filter(Phantom.phantom_type == phantom_type)
+    
+    existing_phantom = query.first()
     
     if existing_phantom:
         return existing_phantom
     
     # Créer un nouveau fantôme si il n'existe pas
     new_phantom = Phantom(
-        name=name,
+        manufacturer=manufacturer,
+        model=model,
         phantom_type=phantom_type,
         dimensions=dimensions,
         material=material,

@@ -97,10 +97,13 @@ def get_experiment_summary(experience_id: int, db: Session = Depends(get_db)):
     # Phantoms associés
     phantoms = [
         {
-            "name": p.phantom.name,
             "phantom_type": p.phantom.phantom_type,
+            "manufacturer": p.phantom.manufacturer,
+            "model": p.phantom.model,
             "dimensions": p.phantom.dimensions,
             "material": p.phantom.material,
+            "position": p.position,
+            "orientation": p.orientation,
         }
         for p in experience.phantoms
     ]

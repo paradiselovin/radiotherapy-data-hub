@@ -3,7 +3,7 @@ from typing import Optional
 
 class DetectorCreate(BaseModel):
     type_detecteur: Optional[str] = None
-    modele: Optional[str] = None
+    modele: str  # Required
     constructeur: Optional[str] = None
 
 class DetectorOut(DetectorCreate):

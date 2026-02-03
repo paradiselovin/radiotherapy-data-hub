@@ -165,17 +165,17 @@ export function SummaryStep({ data, onEdit, isForExistingArticle }: SummaryStepP
                 className="flex items-center gap-2 text-sm bg-muted/50 rounded px-3 py-2"
               >
                 <span className="font-medium">
-                  {phantom.name || "Unnamed phantom"}
+                  {phantom.model || "Unnamed phantom"}
                 </span>
+                {phantom.manufacturer && (
+                  <span className="text-muted-foreground">
+                    by {phantom.manufacturer}
+                  </span>
+                )}
                 {phantom.phantom_type && (
-                  <Badge variant="outline">
+                  <Badge variant="outline" className="ml-auto">
                     {phantom.phantom_type.replace("_", " ")}
                   </Badge>
-                )}
-                {phantom.dimensions && (
-                  <span className="text-muted-foreground text-xs">
-                    {phantom.dimensions}
-                  </span>
                 )}
               </div>
             ))

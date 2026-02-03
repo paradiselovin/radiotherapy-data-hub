@@ -21,14 +21,15 @@ def create_phantom(phantom: PhantomCreate, db: Session = Depends(get_db)):
     """
     Crée un fantôme ou retourne le fantôme existant si il existe déjà.
     
-    Critères de recherche: name + phantom_type
+    Critères de recherche: manufacturer + model + phantom_type
     (dimensions et material peuvent varier pour le même fantôme)
     """
     try:
         # Get or create (reuses if exists)
         db_phantom = get_or_create_phantom(
             db,
-            name=phantom.name,
+            manufacturer=phantom.manufacturer,
+            model=phantom.model,
             phantom_type=phantom.phantom_type,
             dimensions=phantom.dimensions,
             material=phantom.material
@@ -51,35 +52,40 @@ def create_phantom(phantom: PhantomCreate, db: Session = Depends(get_db)):
 def list_phantoms(db: Session = Depends(get_db)):
     return db.query(Phantom).all()
 
-@router.get("/types")
-def get_phantom_types(db: Session = Depends(get_db)):
+@router.get("/manufacturers/{phantom_type}")
+def get_manufacturers(phantom_type: str, db: Session = Depends(get_db)):
     """
-    Retourne la liste des types de fantômes existants (sans doublons).
-    """
-    types = db.query(Phantom.phantom_type).distinct().all()
-    return [t[0] for t in types if t[0] is not None]
-
-@router.get("/names/{phantom_type}")
-def get_names(phantom_type: str, db: Session = Depends(get_db)):
-    """
-    Retourne la liste des noms de fantômes pour un type donné.
+    Retourne la liste des fabricants de fantômes pour un type donné.
     
-    Exemple: GET /phantoms/names/RW3%20Slab
+    Exemple: GET /phantoms/manufacturers/homogeneous
     """
-    names = db.query(Phantom.name).filter(
+    manufacturers = db.query(Phantom.manufacturer).filter(
         Phantom.phantom_type == phantom_type
     ).distinct().all()
-    return [n[0] for n in names if n[0] is not None]
+    return [m[0] for m in manufacturers if m[0] is not None]
 
-@router.get("/dimensions/{phantom_type}/{name}")
-def get_dimensions(phantom_type: str, name: str, db: Session = Depends(get_db)):
+@router.get("/models/{phantom_type}")
+def get_models(phantom_type: str, db: Session = Depends(get_db)):
     """
-    Retourne la liste des dimensions pour un type et un nom de fantôme donnés.
+    Retourne la liste des modèles de fantômes pour un type donné.
     
-    Exemple: GET /phantoms/dimensions/RW3%20Slab/RW3
+    Exemple: GET /phantoms/models/homogeneous
+    """
+    models = db.query(Phantom.model).filter(
+        Phantom.phantom_type == phantom_type
+    ).distinct().all()
+    return [m[0] for m in models if m[0] is not None]
+
+@router.get("/dimensions/{phantom_type}/{manufacturer}/{model}")
+def get_dimensions(phantom_type: str, manufacturer: str, model: str, db: Session = Depends(get_db)):
+    """
+    Retourne la liste des dimensions pour un type, fabricant et modèle donnés.
+    
+    Exemple: GET /phantoms/dimensions/homogeneous/IAEA/Water%20Phantom
     """
     dimensions = db.query(Phantom.dimensions).filter(
         Phantom.phantom_type == phantom_type,
-        Phantom.name == name
+        Phantom.manufacturer == manufacturer,
+        Phantom.model == model
     ).distinct().all()
     return [d[0] for d in dimensions if d[0] is not None]

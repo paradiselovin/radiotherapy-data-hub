@@ -161,7 +161,8 @@ def submit_complete_experiment(
             # Get or create phantom (will reuse if exists)
             phantom = get_or_create_phantom(
                 db,
-                name=phantom_info.get("name"),
+                manufacturer=phantom_info.get("manufacturer"),
+                model=phantom_info.get("model"),
                 phantom_type=phantom_info.get("phantom_type"),
                 dimensions=phantom_info.get("dimensions"),
                 material=phantom_info.get("material"),
@@ -398,7 +399,8 @@ def submit_experience_to_article(
             # Get or create phantom (will reuse if exists)
             phantom = get_or_create_phantom(
                 db,
-                name=phantom_info.get("name"),
+                manufacturer=phantom_info.get("manufacturer"),
+                model=phantom_info.get("model"),
                 phantom_type=phantom_info.get("phantom_type"),
                 dimensions=phantom_info.get("dimensions"),
                 material=phantom_info.get("material"),

@@ -11,8 +11,9 @@ import {
 } from "@/components/ui/select";
 
 interface PhantomData {
-    name: string;
     phantom_type: string;
+    manufacturer: string;
+    model: string;
     dimensions: string;
     material: string;
     position?: string;
@@ -38,7 +39,7 @@ export function PhantomStep({ data, onChange }: PhantomStepProps) {
     const addPhantom = () => {
         onChange([
             ...data,
-            { name: "", phantom_type: "", dimensions: "", material: "", position: "", orientation: "" },
+            { phantom_type: "", manufacturer: "", model: "", dimensions: "", material: "", position: "", orientation: "" },
         ]);
     };
 
@@ -91,18 +92,7 @@ export function PhantomStep({ data, onChange }: PhantomStepProps) {
                             )}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>
-                                    Name <span className="text-destructive">*</span>
-                                </Label>
-                                <Input
-                                    placeholder="e.g., IAEA water phantom"
-                                    value={phantom.name}
-                                    onChange={(e) => updatePhantom(index, "name", e.target.value)}
-                                />
-                            </div>
-
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-2">
                                 <Label>Phantom Type</Label>
                                 <Select
@@ -125,6 +115,32 @@ export function PhantomStep({ data, onChange }: PhantomStepProps) {
                             </div>
 
                             <div className="space-y-2">
+                                <Label>Manufacturer</Label>
+                                <Input
+                                    placeholder="e.g., IAEA, IBA"
+                                    value={phantom.manufacturer}
+                                    onChange={(e) =>
+                                        updatePhantom(index, "manufacturer", e.target.value)
+                                    }
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>
+                                    Model <span className="text-destructive">*</span>
+                                </Label>
+                                <Input
+                                    placeholder="e.g., Water Phantom, RW3"
+                                    value={phantom.model}
+                                    onChange={(e) =>
+                                        updatePhantom(index, "model", e.target.value)
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
                                 <Label>Dimensions (LxWxH)</Label>
                                 <Input
                                     placeholder="e.g., 10x10x10"
@@ -141,7 +157,7 @@ export function PhantomStep({ data, onChange }: PhantomStepProps) {
                             <div className="space-y-2">
                                 <Label>Material</Label>
                                 <Input
-                                    placeholder="e.g., Water, Plastic, Tissue-equivalent"
+                                    placeholder="e.g., Water, Plastic"
                                     value={phantom.material}
                                     onChange={(e) =>
                                         updatePhantom(index, "material", e.target.value)
@@ -150,16 +166,16 @@ export function PhantomStep({ data, onChange }: PhantomStepProps) {
                             </div>
                         </div>
 
-                        {/* Additional parameters for this experiment */}
+                        {/* Position in this experiment */}
                         <div className="border-t pt-4">
                             <p className="text-sm font-medium text-muted-foreground mb-3">
-                                Parameters for this experiment
+                                Position in this experiment
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label>Position</Label>
                                     <Input
-                                        placeholder="e.g., at isocentre, vertical axis"
+                                        placeholder="e.g., Isocenter, Center"
                                         value={phantom.position || ""}
                                         onChange={(e) =>
                                             updatePhantom(index, "position", e.target.value)
@@ -170,7 +186,7 @@ export function PhantomStep({ data, onChange }: PhantomStepProps) {
                                 <div className="space-y-2">
                                     <Label>Orientation</Label>
                                     <Input
-                                        placeholder="e.g., horizontal, vertical, perpendicular"
+                                        placeholder="e.g., Horizontal, Vertical"
                                         value={phantom.orientation || ""}
                                         onChange={(e) =>
                                             updatePhantom(index, "orientation", e.target.value)

@@ -124,7 +124,9 @@ export function DetectorStep({ data, onChange }: DetectorStepProps) {
               </div>
 
               <div className="space-y-2">
-                <Label>Model</Label>
+                <Label>
+                  Model <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   placeholder="e.g., Farmer, CC13"
                   value={detector.model}

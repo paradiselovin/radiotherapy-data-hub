@@ -33,10 +33,13 @@ export interface FormData {
     manufacturer: string;
   }>;
   phantoms: Array<{
-    name: string;
     phantom_type: string;
+    manufacturer: string;
+    model: string;
     dimensions: string;
     material: string;
+    position?: string;
+    orientation?: string;
   }>;
   data: {
     dataType: string;
@@ -84,7 +87,7 @@ export function FormWizard({ articleId, experienceId, draftMode = false, initial
     article: { title: "", authors: "", doi: "" },
     experience: { description: "" },
     machines: [{ manufacturer: "", model: "", machineType: "" }],
-    phantoms: [{ name: "", phantom_type: "", dimensions: "", material: "" }],
+    phantoms: [{ phantom_type: "", manufacturer: "", model: "", dimensions: "", material: "", position: "", orientation: "" }],
     detectors: [{ detectorType: "", model: "", manufacturer: "" }],
     data: { dataType: "", fileFormat: "", description: "", file: null, columnMapping: [] },
   });
@@ -138,7 +141,7 @@ export function FormWizard({ articleId, experienceId, draftMode = false, initial
       setFormData({
         article: { title: "", authors: "", doi: "" },
         experience: { description: "" },
-        phantoms: [{ name: "", phantom_type: "", dimensions: "", material: "" }],
+        phantoms: [{ phantom_type: "", manufacturer: "", model: "", dimensions: "", material: "", position: "", orientation: "" }],
         machines: [{ manufacturer: "", model: "", machineType: "" }],
         detectors: [{ detectorType: "", model: "", manufacturer: "" }],
         data: { dataType: "", fileFormat: "", description: "", file: null, columnMapping: [] },

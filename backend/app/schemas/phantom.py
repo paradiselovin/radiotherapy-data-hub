@@ -3,8 +3,9 @@ from pydantic import BaseModel, validator
 from typing import Optional
 
 class PhantomCreate(BaseModel):
-    name: str
     phantom_type: Optional[str] = None
+    manufacturer: Optional[str] = None
+    model: str  # Required
     dimensions: Optional[str] = None
     material: Optional[str] = None
 
