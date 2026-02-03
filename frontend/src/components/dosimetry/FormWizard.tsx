@@ -40,7 +40,6 @@ export interface FormData {
   }>;
   data: {
     dataType: string;
-    unit: string;
     fileFormat: string;
     description: string;
     file: File | null;
@@ -68,7 +67,7 @@ export function FormWizard() {
     machines: [{ manufacturer: "", model: "", machineType: "" }],
     phantoms: [{ name: "", phantom_type: "", dimensions: "", material: "" }],
     detectors: [{ detectorType: "", model: "", manufacturer: "" }],
-    data: { dataType: "", unit: "", fileFormat: "", description: "", file: null, columnMapping: [] },
+    data: { dataType: "", fileFormat: "", description: "", file: null, columnMapping: [] },
   });
 
   const progress = ((currentStep - 1) / (steps.length - 1)) * 100;
@@ -108,7 +107,7 @@ export function FormWizard() {
         phantoms: [{ name: "", phantom_type: "", dimensions: "", material: "" }],
         machines: [{ manufacturer: "", model: "", machineType: "" }],
         detectors: [{ detectorType: "", model: "", manufacturer: "" }],
-        data: { dataType: "", unit: "", fileFormat: "", description: "", file: null, columnMapping: [] },
+        data: { dataType: "", fileFormat: "", description: "", file: null, columnMapping: [] },
       });
       setCurrentStep(1);
     } else if (failedStep && failedStep > 0) {

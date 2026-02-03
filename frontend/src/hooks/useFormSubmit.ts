@@ -69,6 +69,9 @@ export const useFormSubmit = () => {
             manufacturer: m.manufacturer,
             model: m.model,
             machineType: m.machineType,
+            energy: m.energy || undefined,
+            collimation: m.collimation || undefined,
+            settings: m.settings || undefined,
           })),
         detectors: formData.detectors
           .filter((d) => d.detectorType)
@@ -76,6 +79,9 @@ export const useFormSubmit = () => {
             detectorType: d.detectorType,
             model: d.model,
             manufacturer: d.manufacturer,
+            position: d.position || undefined,
+            depth: d.depth || undefined,
+            orientation: d.orientation || undefined,
           })),
         phantoms: formData.phantoms
           .filter((p) => p.name)
@@ -84,10 +90,11 @@ export const useFormSubmit = () => {
             phantom_type: p.phantom_type,
             dimensions: p.dimensions,
             material: p.material,
+            position: p.position || undefined,
+            orientation: p.orientation || undefined,
           })),
         file: formData.data.file!,
         data_type: formData.data.dataType || "raw",
-        unit: formData.data.unit || undefined,
         data_description: formData.data.description || undefined,
         columnMapping: formData.data.columnMapping || [],
       };

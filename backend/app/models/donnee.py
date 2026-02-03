@@ -9,7 +9,6 @@ class Donnee(Base):
     experience_id = Column(Integer, ForeignKey("experiences.experience_id"), nullable=False)
 
     data_type = Column(String, nullable=False)      
-    unit = Column(String)                           
     file_format = Column(String)                   
     file_path = Column(String, nullable=False)
 

@@ -12,14 +12,16 @@ from sqlalchemy.exc import DatabaseError, IntegrityError
 from app.database import SessionLocal
 from app.models.article import Article
 from app.models.experience import Experience
-from app.models.machine import Machine
-from app.models.detector import Detector
-from app.models.phantom import Phantom
 from app.models.donnee import Donnee
 from app.models.experience_machine import ExperienceMachine
 from app.models.experience_detector import ExperienceDetector
 from app.models.experience_phantom import ExperiencePhantom
 from app.models.column_mapping import ColumnMapping
+from app.services.entity_management import (
+    get_or_create_machine,
+    get_or_create_detector,
+    get_or_create_phantom,
+)
 
 router = APIRouter(prefix="/complete", tags=["Complete Submission"])
 
@@ -56,7 +58,6 @@ def submit_complete_experiment(
     # Data fields
     file: UploadFile = File(...),
     data_type: str = Form(...),
-    unit: str = Form(None),
     data_description: str = Form(None),
     columnMapping: str = Form(None),
     
@@ -92,75 +93,91 @@ def submit_complete_experiment(
         db.flush()  # Get experience_id
         print(f"✅ Experience created with ID: {experience.experience_id}")
         
-        # Step 3: Create and link Machines
-        print("📝 Step 3: Creating and linking machines...")
+        # Step 3: Get or create and link Machines
+        print("📝 Step 3: Getting/creating and linking machines...")
         machines_data = json.loads(machines)
-        created_machines = []
+        print(f"Raw machines JSON: {machines}")
+        print(f"Parsed machines data: {machines_data}")
+        linked_machines = []
         for machine_info in machines_data:
-            machine = Machine(
+            print(f"  Processing machine: {machine_info}")
+            # Get or create machine (will reuse if exists)
+            machine = get_or_create_machine(
+                db,
                 constructeur=machine_info.get("manufacturer"),
                 modele=machine_info.get("model"),
                 type_machine=machine_info.get("machineType"),
             )
-            db.add(machine)
-            db.flush()
-            created_machines.append(machine)
+            linked_machines.append(machine)
             
-            # Link to experience
+            # Link to experience with parameters
+            energy_val = machine_info.get("energy")
+            collimation_val = machine_info.get("collimation")
+            settings_val = machine_info.get("settings")
+            print(f"  Parameters - energy: {energy_val}, collimation: {collimation_val}, settings: {settings_val}")
+            
             link = ExperienceMachine(
                 experience_id=experience.experience_id,
                 machine_id=machine.machine_id,
+                energy=energy_val,
+                collimation=collimation_val,
+                settings=settings_val,
             )
             db.add(link)
         db.flush()
-        print(f"✅ {len(created_machines)} machines created and linked")
+        print(f"✅ {len(linked_machines)} machines linked to experience")
         
-        # Step 4: Create and link Detectors
-        print("📝 Step 4: Creating and linking detectors...")
+        # Step 4: Get or create and link Detectors
+        print("📝 Step 4: Getting/creating and linking detectors...")
         detectors_data = json.loads(detectors)
-        created_detectors = []
+        linked_detectors = []
         for detector_info in detectors_data:
-            detector = Detector(
+            # Get or create detector (will reuse if exists)
+            detector = get_or_create_detector(
+                db,
                 type_detecteur=detector_info.get("detectorType"),
                 modele=detector_info.get("model"),
                 constructeur=detector_info.get("manufacturer"),
             )
-            db.add(detector)
-            db.flush()
-            created_detectors.append(detector)
+            linked_detectors.append(detector)
             
-            # Link to experience
+            # Link to experience with parameters
             link = ExperienceDetector(
                 experience_id=experience.experience_id,
                 detector_id=detector.detecteur_id,
+                position=detector_info.get("position"),
+                depth=detector_info.get("depth"),
+                orientation=detector_info.get("orientation"),
             )
             db.add(link)
         db.flush()
-        print(f"✅ {len(created_detectors)} detectors created and linked")
+        print(f"✅ {len(linked_detectors)} detectors linked to experience")
         
-        # Step 5: Create and link Phantoms
-        print("📝 Step 5: Creating and linking phantoms...")
+        # Step 5: Get or create and link Phantoms
+        print("📝 Step 5: Getting/creating and linking phantoms...")
         phantoms_data = json.loads(phantoms)
-        created_phantoms = []
+        linked_phantoms = []
         for phantom_info in phantoms_data:
-            phantom = Phantom(
+            # Get or create phantom (will reuse if exists)
+            phantom = get_or_create_phantom(
+                db,
                 name=phantom_info.get("name"),
                 phantom_type=phantom_info.get("phantom_type"),
                 dimensions=phantom_info.get("dimensions"),
                 material=phantom_info.get("material"),
             )
-            db.add(phantom)
-            db.flush()
-            created_phantoms.append(phantom)
+            linked_phantoms.append(phantom)
             
-            # Link to experience
+            # Link to experience with parameters
             link = ExperiencePhantom(
                 experience_id=experience.experience_id,
                 phantom_id=phantom.phantom_id,
+                position=phantom_info.get("position"),
+                orientation=phantom_info.get("orientation"),
             )
             db.add(link)
         db.flush()
-        print(f"✅ {len(created_phantoms)} phantoms created and linked")
+        print(f"✅ {len(linked_phantoms)} phantoms linked to experience")
         
         # Step 6: Upload data file and create column mappings
         print("📝 Step 6: Uploading data file...")
@@ -171,7 +188,6 @@ def submit_complete_experiment(
         donnee = Donnee(
             experience_id=experience.experience_id,
             data_type=data_type,
-            unit=unit,
             file_format=file.filename.split(".")[-1],
             file_path=file_path,
             description=data_description,
@@ -179,7 +195,7 @@ def submit_complete_experiment(
         db.add(donnee)
         db.flush()
         print(f"✅ Data file uploaded with ID: {donnee.data_id}")
-        
+
         # Step 7: Create column mappings if provided
         if columnMapping:
             print("📝 Step 7: Creating column mappings...")
@@ -219,9 +235,9 @@ def submit_complete_experiment(
             "article_id": article.article_id,
             "experience_id": experience.experience_id,
             "data_id": donnee.data_id,
-            "machines_count": len(created_machines),
-            "detectors_count": len(created_detectors),
-            "phantoms_count": len(created_phantoms),
+            "machines_count": len(linked_machines),
+            "detectors_count": len(linked_detectors),
+            "phantoms_count": len(linked_phantoms),
         }
         
     except (DatabaseError, IntegrityError) as e:

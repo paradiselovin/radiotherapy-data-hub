@@ -320,7 +320,6 @@ export const api = {
     phantoms: any[];
     file: File;
     data_type: string;
-    unit?: string;
     data_description?: string;
     columnMapping?: any[];
   }): Promise<any> {
@@ -334,7 +333,6 @@ export const api = {
     data.append("phantoms", JSON.stringify(formData.phantoms));
     data.append("file", formData.file);
     data.append("data_type", formData.data_type);
-    if (formData.unit) data.append("unit", formData.unit);
     if (formData.data_description) data.append("data_description", formData.data_description);
     if (formData.columnMapping && formData.columnMapping.length > 0) {
       data.append("columnMapping", JSON.stringify(formData.columnMapping));

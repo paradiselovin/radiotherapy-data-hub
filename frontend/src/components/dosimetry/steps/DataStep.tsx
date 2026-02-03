@@ -14,7 +14,6 @@ import type { ColumnMapping } from "./ColumnMappingStep";
 
 interface DataInfo {
   dataType: string;
-  unit: string;
   fileFormat: string;
   description: string;
   file: File | null;
@@ -33,14 +32,6 @@ const dataTypes = [
   { value: "tpr", label: "TPR/TMR" },
   { value: "dose_distribution", label: "3D Dose Distribution" },
   { value: "dvh", label: "DVH (Dose Volume Histogram)" },
-  { value: "other", label: "Other" },
-];
-
-const units = [
-  { value: "gy", label: "Gy (Gray)" },
-  { value: "cgy", label: "cGy (centiGray)" },
-  { value: "percent", label: "%" },
-  { value: "mu", label: "MU (Monitor Units)" },
   { value: "other", label: "Other" },
 ];
 
@@ -95,25 +86,6 @@ export function DataStep({ data, onChange }: DataStepProps) {
               {dataTypes.map((type) => (
                 <SelectItem key={type.value} value={type.value}>
                   {type.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Unit</Label>
-          <Select
-            value={data.unit}
-            onValueChange={(value) => handleChange("unit", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select unit" />
-            </SelectTrigger>
-            <SelectContent>
-              {units.map((unit) => (
-                <SelectItem key={unit.value} value={unit.value}>
-                  {unit.label}
                 </SelectItem>
               ))}
             </SelectContent>
