@@ -1,7 +1,7 @@
-import ArticlesPage from "./Articles";
+import WelcomePage from "./Welcome";
 
 const Index = () => {
-  return <ArticlesPage />;
+  return <WelcomePage />;
 };
 
 export default Index;

@@ -50,6 +50,8 @@ export interface FormData {
 interface FormWizardProps {
   articleId?: number;
   experienceId?: number;
+  draftMode?: boolean;
+  initialData?: FormData;
   onSuccess?: (result: any) => void;
   onCancel?: () => void;
 }
@@ -75,10 +77,10 @@ const stepsWithoutArticle = [
   { id: 7, name: "Summary", description: "Review & submit" },
 ];
 
-export function FormWizard({ articleId, experienceId, onSuccess, onCancel }: FormWizardProps) {
+export function FormWizard({ articleId, experienceId, draftMode = false, initialData, onSuccess, onCancel }: FormWizardProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const { isSubmitting, submitForm, submitExperienceForm, failedStep } = useFormSubmit();
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<FormData>(initialData || {
     article: { title: "", authors: "", doi: "" },
     experience: { description: "" },
     machines: [{ manufacturer: "", model: "", machineType: "" }],
@@ -87,10 +89,10 @@ export function FormWizard({ articleId, experienceId, onSuccess, onCancel }: For
     data: { dataType: "", fileFormat: "", description: "", file: null, columnMapping: [] },
   });
 
-  // Determine which steps to show based on articleId
-  const steps = articleId ? stepsWithoutArticle : stepsWithArticle;
+  // Determine which steps to show based on articleId or draftMode
+  const steps = articleId || draftMode ? stepsWithoutArticle : stepsWithArticle;
   const progress = ((currentStep - 1) / (steps.length - 1)) * 100;
-  const isForExistingArticle = !!articleId;
+  const isForExistingArticle = !!articleId || draftMode;
 
   const updateFormData = <K extends keyof FormData>(
     section: K,
@@ -118,6 +120,12 @@ export function FormWizard({ articleId, experienceId, onSuccess, onCancel }: For
   };
 
   const handleSubmit = async () => {
+    // In draft mode, just return the form data without making API call
+    if (draftMode) {
+      onSuccess?.(formData);
+      return;
+    }
+
     let success = false;
     if (isForExistingArticle && articleId) {
       success = await submitExperienceForm(formData, articleId);
@@ -371,7 +379,7 @@ export function FormWizard({ articleId, experienceId, onSuccess, onCancel }: For
             >
               Previous
             </Button>
-            {onCancel && (
+            {onCancel && !isForExistingArticle && (
               <Button variant="outline" onClick={onCancel}>
                 <X className="h-4 w-4 mr-2" />
                 Cancel

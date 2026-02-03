@@ -3,53 +3,45 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { api } from "@/services/api";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+
+interface ArticleFormData {
+    titre: string;
+    auteurs?: string;
+    doi?: string;
+}
 
 interface ArticleFormProps {
-    onSuccess: (article: any) => void;
+    onSuccess: (data: ArticleFormData) => void;
 }
 
 export function ArticleForm({ onSuccess }: ArticleFormProps) {
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<ArticleFormData>({
         titre: "",
         auteurs: "",
         doi: "",
     });
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState(false);
 
     const handleChange = (field: string, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
+        setError(null);
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
-        setError(null);
-        setSuccess(false);
 
-        try {
-            const article = await api.createArticle({
-                titre: formData.titre,
-                auteurs: formData.auteurs || undefined,
-                doi: formData.doi || undefined,
-            });
-
-            setSuccess(true);
-            setFormData({ titre: "", auteurs: "", doi: "" });
-
-            // Show success message for 2 seconds then reset
-            setTimeout(() => {
-                onSuccess(article);
-            }, 1000);
-        } catch (err) {
-            const message = err instanceof Error ? err.message : "Failed to create article";
-            setError(message);
-        } finally {
-            setLoading(false);
+        if (!formData.titre.trim()) {
+            setError("Title is required");
+            return;
         }
+
+        // Pass data without making API call - will be submitted later
+        onSuccess({
+            titre: formData.titre,
+            auteurs: formData.auteurs || undefined,
+            doi: formData.doi || undefined,
+        });
     };
 
     return (
@@ -61,13 +53,6 @@ export function ArticleForm({ onSuccess }: ArticleFormProps) {
                         <p className="font-medium">Error</p>
                         <p className="text-sm">{error}</p>
                     </div>
-                </div>
-            )}
-
-            {success && (
-                <div className="flex items-start gap-3 p-4 bg-green-500/10 text-green-700 dark:text-green-400 rounded-lg">
-                    <CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                    <p className="font-medium">Article created successfully!</p>
                 </div>
             )}
 
@@ -105,8 +90,8 @@ export function ArticleForm({ onSuccess }: ArticleFormProps) {
                 />
             </div>
 
-            <Button type="submit" disabled={loading || !formData.titre}>
-                {loading ? "Creating..." : "Create Article"}
+            <Button type="submit" disabled={!formData.titre}>
+                Continue
             </Button>
         </form>
     );
