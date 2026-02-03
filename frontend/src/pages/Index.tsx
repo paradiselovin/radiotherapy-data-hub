@@ -1,7 +1,7 @@
-import { FormWizard } from "@/components/dosimetry/FormWizard";
+import ArticlesPage from "./Articles";
 
 const Index = () => {
-  return <FormWizard />;
+  return <ArticlesPage />;
 };
 
 export default Index;

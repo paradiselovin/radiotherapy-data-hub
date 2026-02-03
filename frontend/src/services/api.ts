@@ -171,6 +171,11 @@ export const api = {
     return handleResponse<ArticleResponse>(response);
   },
 
+  async getArticleExperiences(articleId: number): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/articles/${articleId}/experiences`);
+    return handleResponse<any>(response);
+  },
+
   // Experiences
   async createExperience(data: ExperienceCreate): Promise<ExperienceResponse> {
     const response = await fetch(`${API_BASE_URL}/experiences/`, {
@@ -339,6 +344,36 @@ export const api = {
     }
 
     const response = await fetch(`${API_BASE_URL}/complete/submit`, {
+      method: "POST",
+      body: data,
+    });
+    return handleResponse<any>(response);
+  },
+
+  // Submit experience for existing article (new multi-experiment paradigm)
+  async submitExperienceToArticle(articleId: number, formData: {
+    experience_description: string;
+    machines: any[];
+    detectors: any[];
+    phantoms: any[];
+    file: File;
+    data_type: string;
+    data_description?: string;
+    columnMapping?: any[];
+  }): Promise<any> {
+    const data = new FormData();
+    data.append("experience_description", formData.experience_description);
+    data.append("machines", JSON.stringify(formData.machines));
+    data.append("detectors", JSON.stringify(formData.detectors));
+    data.append("phantoms", JSON.stringify(formData.phantoms));
+    data.append("file", formData.file);
+    data.append("data_type", formData.data_type);
+    if (formData.data_description) data.append("data_description", formData.data_description);
+    if (formData.columnMapping && formData.columnMapping.length > 0) {
+      data.append("columnMapping", JSON.stringify(formData.columnMapping));
+    }
+
+    const response = await fetch(`${API_BASE_URL}/complete/submit-experience/${articleId}`, {
       method: "POST",
       body: data,
     });

@@ -162,8 +162,116 @@ export const useFormSubmit = () => {
     }
   };
 
+  const submitExperienceForm = async (formData: FormData, articleId: number): Promise<boolean> => {
+    setState({ isSubmitting: true, error: null, success: false, articleId: null, failedStep: null });
+
+    try {
+      console.log("🎯 Starting experience submission for article", articleId);
+
+      // Prepare experience submission data (without article info)
+      const submissionData = {
+        experience_description: formData.experience.description,
+        machines: formData.machines
+          .filter((m) => m.model)
+          .map((m) => ({
+            manufacturer: m.manufacturer,
+            model: m.model,
+            machineType: m.machineType,
+            energy: m.energy || undefined,
+            collimation: m.collimation || undefined,
+            settings: m.settings || undefined,
+          })),
+        detectors: formData.detectors
+          .filter((d) => d.detectorType)
+          .map((d) => ({
+            detectorType: d.detectorType,
+            model: d.model,
+            manufacturer: d.manufacturer,
+            position: d.position || undefined,
+            depth: d.depth || undefined,
+            orientation: d.orientation || undefined,
+          })),
+        phantoms: formData.phantoms
+          .filter((p) => p.name)
+          .map((p) => ({
+            name: p.name,
+            phantom_type: p.phantom_type,
+            dimensions: p.dimensions,
+            material: p.material,
+            position: p.position || undefined,
+            orientation: p.orientation || undefined,
+          })),
+        file: formData.data.file!,
+        data_type: formData.data.dataType || "raw",
+        data_description: formData.data.description || undefined,
+        columnMapping: formData.data.columnMapping || [],
+      };
+
+      console.log("📤 Submitting experience to backend...");
+      const result = await retryRequest(() =>
+        api.submitExperienceToArticle(articleId, submissionData)
+      );
+
+      console.log("✅ Experience submission successful!");
+      console.log("Created:", result);
+
+      setState({
+        isSubmitting: false,
+        error: null,
+        success: true,
+        articleId: articleId,
+        failedStep: null,
+      });
+
+      toast({
+        title: "Experiment added successfully!",
+        description: `New experiment has been saved to the article.`,
+      });
+
+      return true;
+    } catch (error) {
+      console.error("❌ Experience submission error:", error);
+
+      // Determine which step failed based on error message
+      let failedStep = 1; // Default to experience step
+      let message = "Failed to submit. Please check your connection and try again.";
+
+      if (error instanceof ApiError) {
+        message = error.message;
+
+        // Try to infer which step failed from error message (without article step offset)
+        if (message.includes("experience")) failedStep = 1;
+        else if (message.includes("machine")) failedStep = 2;
+        else if (message.includes("detector")) failedStep = 3;
+        else if (message.includes("phantom")) failedStep = 4;
+        else if (message.includes("data") || message.includes("file")) failedStep = 5;
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
+
+      console.log(`❌ Failed at step ${failedStep}`);
+
+      setState({
+        isSubmitting: false,
+        error: message,
+        success: false,
+        articleId: null,
+        failedStep,
+      });
+
+      toast({
+        title: "Experience submission failed",
+        description: message,
+        variant: "destructive",
+      });
+
+      return false;
+    }
+  };
+
   return {
     ...state,
     submitForm,
+    submitExperienceForm,
   };
 };

@@ -11,9 +11,3 @@ class ArticleOut(ArticleCreate):
 
     class Config:
         from_attributes = True
-
-class ArticleOut(ArticleCreate):
-    article_id: int
-
-    class Config:
-        orm_mode = True

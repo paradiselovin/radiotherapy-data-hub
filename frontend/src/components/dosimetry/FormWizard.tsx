@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -47,7 +47,14 @@ export interface FormData {
   };
 }
 
-const steps = [
+interface FormWizardProps {
+  articleId?: number;
+  experienceId?: number;
+  onSuccess?: (result: any) => void;
+  onCancel?: () => void;
+}
+
+const stepsWithArticle = [
   { id: 1, name: "Article", description: "Publication details" },
   { id: 2, name: "Experience", description: "Experiment info" },
   { id: 3, name: "Machine", description: "Equipment used" },
@@ -58,9 +65,19 @@ const steps = [
   { id: 8, name: "Summary", description: "Review & submit" },
 ];
 
-export function FormWizard() {
+const stepsWithoutArticle = [
+  { id: 1, name: "Experience", description: "Experiment info" },
+  { id: 2, name: "Machine", description: "Equipment used" },
+  { id: 3, name: "Detector", description: "Detection devices" },
+  { id: 4, name: "Phantom", description: "Dosimetric objects" },
+  { id: 5, name: "Data", description: "Upload dataset" },
+  { id: 6, name: "Columns", description: "Map columns" },
+  { id: 7, name: "Summary", description: "Review & submit" },
+];
+
+export function FormWizard({ articleId, experienceId, onSuccess, onCancel }: FormWizardProps) {
   const [currentStep, setCurrentStep] = useState(1);
-  const { isSubmitting, submitForm, failedStep } = useFormSubmit();
+  const { isSubmitting, submitForm, submitExperienceForm, failedStep } = useFormSubmit();
   const [formData, setFormData] = useState<FormData>({
     article: { title: "", authors: "", doi: "" },
     experience: { description: "" },
@@ -70,7 +87,10 @@ export function FormWizard() {
     data: { dataType: "", fileFormat: "", description: "", file: null, columnMapping: [] },
   });
 
+  // Determine which steps to show based on articleId
+  const steps = articleId ? stepsWithoutArticle : stepsWithArticle;
   const progress = ((currentStep - 1) / (steps.length - 1)) * 100;
+  const isForExistingArticle = !!articleId;
 
   const updateFormData = <K extends keyof FormData>(
     section: K,
@@ -98,7 +118,13 @@ export function FormWizard() {
   };
 
   const handleSubmit = async () => {
-    const success = await submitForm(formData);
+    let success = false;
+    if (isForExistingArticle && articleId) {
+      success = await submitExperienceForm(formData, articleId);
+    } else {
+      success = await submitForm(formData);
+    }
+
     if (success) {
       // Reset form on success
       setFormData({
@@ -110,73 +136,131 @@ export function FormWizard() {
         data: { dataType: "", fileFormat: "", description: "", file: null, columnMapping: [] },
       });
       setCurrentStep(1);
+      onSuccess?.(success);
     } else if (failedStep && failedStep > 0) {
       // Navigate to the step that failed
       console.log(`📍 Navigating to failed step: ${failedStep}`);
-      setCurrentStep(failedStep);
+      const adjustedStep = isForExistingArticle ? failedStep - 1 : failedStep;
+      setCurrentStep(Math.max(1, adjustedStep));
       // Scroll to top so user sees the error
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <ArticleStep
-            data={formData.article}
-            onChange={(data) => updateFormData("article", data)}
-          />
-        );
-      case 2:
-        return (
-          <ExperienceStep
-            data={formData.experience}
-            onChange={(data) => updateFormData("experience", data)}
-          />
-        );
-      case 3:
-        return (
-          <MachineStep
-            data={formData.machines}
-            onChange={(data) => updateFormData("machines", data)}
-          />
-        );
-      case 4:
-        return (
-          <DetectorStep
-            data={formData.detectors}
-            onChange={(data) => updateFormData("detectors", data)}
-          />
-        );
-      case 5:
-        return (
-          <PhantomStep
-            data={formData.phantoms}
-            onChange={(data) => updateFormData("phantoms", data)}
-          />
-        );
-      case 6:
-        return (
-          <DataStep
-            data={formData.data}
-            onChange={(data) => updateFormData("data", data)}
-          />
-        );
-      case 7:
-        return (
-          <ColumnMappingStep
-            data={formData.data.columnMapping}
-            fileName={formData.data.file?.name || null}
-            onChange={(columnMapping) =>
-              updateFormData("data", { ...formData.data, columnMapping })
-            }
-          />
-        );
-      case 8:
-        return <SummaryStep data={formData} onEdit={goToStep} />;
-      default:
-        return null;
+    if (isForExistingArticle) {
+      // When article is already selected, skip ArticleStep
+      switch (currentStep) {
+        case 1:
+          return (
+            <ExperienceStep
+              data={formData.experience}
+              onChange={(data) => updateFormData("experience", data)}
+            />
+          );
+        case 2:
+          return (
+            <MachineStep
+              data={formData.machines}
+              onChange={(data) => updateFormData("machines", data)}
+            />
+          );
+        case 3:
+          return (
+            <DetectorStep
+              data={formData.detectors}
+              onChange={(data) => updateFormData("detectors", data)}
+            />
+          );
+        case 4:
+          return (
+            <PhantomStep
+              data={formData.phantoms}
+              onChange={(data) => updateFormData("phantoms", data)}
+            />
+          );
+        case 5:
+          return (
+            <DataStep
+              data={formData.data}
+              onChange={(data) => updateFormData("data", data)}
+            />
+          );
+        case 6:
+          return (
+            <ColumnMappingStep
+              data={formData.data.columnMapping}
+              fileName={formData.data.file?.name || null}
+              onChange={(columnMapping) =>
+                updateFormData("data", { ...formData.data, columnMapping })
+              }
+            />
+          );
+        case 7:
+          return <SummaryStep data={formData} onEdit={goToStep} isForExistingArticle={true} />;
+        default:
+          return null;
+      }
+    } else {
+      // Original flow with article creation
+      switch (currentStep) {
+        case 1:
+          return (
+            <ArticleStep
+              data={formData.article}
+              onChange={(data) => updateFormData("article", data)}
+            />
+          );
+        case 2:
+          return (
+            <ExperienceStep
+              data={formData.experience}
+              onChange={(data) => updateFormData("experience", data)}
+            />
+          );
+        case 3:
+          return (
+            <MachineStep
+              data={formData.machines}
+              onChange={(data) => updateFormData("machines", data)}
+            />
+          );
+        case 4:
+          return (
+            <DetectorStep
+              data={formData.detectors}
+              onChange={(data) => updateFormData("detectors", data)}
+            />
+          );
+        case 5:
+          return (
+            <PhantomStep
+              data={formData.phantoms}
+              onChange={(data) => updateFormData("phantoms", data)}
+            />
+          );
+        case 6:
+          return (
+            <DataStep
+              data={formData.data}
+              onChange={(data) => updateFormData("data", data)}
+            />
+          );
+        case 7:
+          return (
+            <ColumnMappingStep
+              data={formData.data.columnMapping}
+              fileName={formData.data.file?.name || null}
+              onChange={(columnMapping) =>
+                updateFormData("data", { ...formData.data, columnMapping })
+              }
+            />
+          );
+        case 8:
+          return <SummaryStep data={formData} onEdit={goToStep} />;
+        default:
+          return null;
+      }
     }
   };
 
@@ -186,10 +270,12 @@ export function FormWizard() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Dosimetry Data Collection
+            {isForExistingArticle ? "Add New Experiment" : "Dosimetry Data Collection"}
           </h1>
           <p className="text-muted-foreground">
-            Submit your radiotherapy research data for deep learning training
+            {isForExistingArticle
+              ? "Add a new experiment to this article"
+              : "Submit your radiotherapy research data for deep learning training"}
           </p>
         </div>
 
@@ -277,13 +363,21 @@ export function FormWizard() {
 
         {/* Navigation buttons */}
         <div className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={prevStep}
-            disabled={currentStep === 1}
-          >
-            Previous
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={prevStep}
+              disabled={currentStep === 1}
+            >
+              Previous
+            </Button>
+            {onCancel && (
+              <Button variant="outline" onClick={onCancel}>
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            )}
+          </div>
 
           {currentStep < steps.length ? (
             <Button onClick={nextStep}>

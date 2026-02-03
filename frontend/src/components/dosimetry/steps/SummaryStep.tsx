@@ -6,9 +6,10 @@ import type { FormData } from "../FormWizard";
 interface SummaryStepProps {
   data: FormData;
   onEdit: (step: number) => void;
+  isForExistingArticle?: boolean;
 }
 
-export function SummaryStep({ data, onEdit }: SummaryStepProps) {
+export function SummaryStep({ data, onEdit, isForExistingArticle }: SummaryStepProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -20,33 +21,35 @@ export function SummaryStep({ data, onEdit }: SummaryStepProps) {
         </p>
       </div>
 
-      {/* Article Section */}
-      <div className="border rounded-lg p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold">Article</h3>
+      {/* Article Section - Only show if creating new article */}
+      {!isForExistingArticle && (
+        <div className="border rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold">Article</h3>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => onEdit(1)}>
+              <Pencil className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => onEdit(1)}>
-            <Pencil className="h-4 w-4 mr-1" />
-            Edit
-          </Button>
+          <div className="space-y-1 text-sm">
+            <p>
+              <span className="text-muted-foreground">Title:</span>{" "}
+              {data.article.title || <span className="text-destructive">Not provided</span>}
+            </p>
+            <p>
+              <span className="text-muted-foreground">Authors:</span>{" "}
+              {data.article.authors || "—"}
+            </p>
+            <p>
+              <span className="text-muted-foreground">DOI:</span>{" "}
+              {data.article.doi || "—"}
+            </p>
+          </div>
         </div>
-        <div className="space-y-1 text-sm">
-          <p>
-            <span className="text-muted-foreground">Title:</span>{" "}
-            {data.article.title || <span className="text-destructive">Not provided</span>}
-          </p>
-          <p>
-            <span className="text-muted-foreground">Authors:</span>{" "}
-            {data.article.authors || "—"}
-          </p>
-          <p>
-            <span className="text-muted-foreground">DOI:</span>{" "}
-            {data.article.doi || "—"}
-          </p>
-        </div>
-      </div>
+      )}
 
       {/* Experience Section */}
       <div className="border rounded-lg p-4">
@@ -55,7 +58,7 @@ export function SummaryStep({ data, onEdit }: SummaryStepProps) {
             <Database className="h-5 w-5 text-primary" />
             <h3 className="font-semibold">Experiment</h3>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => onEdit(2)}>
+          <Button variant="ghost" size="sm" onClick={() => onEdit(isForExistingArticle ? 1 : 2)}>
             <Pencil className="h-4 w-4 mr-1" />
             Edit
           </Button>
@@ -75,7 +78,7 @@ export function SummaryStep({ data, onEdit }: SummaryStepProps) {
             <h3 className="font-semibold">Machines</h3>
             <Badge variant="secondary">{data.machines.length}</Badge>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => onEdit(3)}>
+          <Button variant="ghost" size="sm" onClick={() => onEdit(isForExistingArticle ? 2 : 3)}>
             <Pencil className="h-4 w-4 mr-1" />
             Edit
           </Button>
